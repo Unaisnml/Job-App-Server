@@ -18,7 +18,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -27,36 +27,40 @@ async function run() {
     await client.connect();
 
     //Create db
-    const db = client.db("job-portal")
-    const jobsCollection = db.collection("jobs");
+    const database = client.db("Job-portal")
+    const jobsCollections = database.collection("jobs");
+
+      //get all jobs
+      app.get('/all-jobs', async(req, res)=>{
+        const jobs = await jobsCollections.find({}).toArray();
+        res.send(jobs)
+    })
 
     //post job
     app.post('/post-job', async(req, res)=>{
         const body = req.body;
         body.createdAt = new Date();
-        const result = await jobsCollection.insertOne(body);
+        console.log(body)
+        const result = await jobsCollections.insertOne(body);
+        console.log(result)
         if(result.insertedId) {
            return res.status(200).send(result)
         }else {
             res.status(404).send({
-                message: "Can not insert! try again later",
+                message: "Cannot insert! try again later",
                 status: false
             })
         }
     })
 
-    //get all jobs
-    app.get('/all-jobs', async(req, res)=>{
-        const jobs = await db.jobsCollection.find({}).toArray();
-        res.send(jobs)
-    })
+  
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
